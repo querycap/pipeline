@@ -1,0 +1,13 @@
+name: process-some-image
+version: 0.1.0
+
+starts: fetch-image
+ends: grayify-image
+
+stages:
+  fetch-image:
+    uses: sys/fetch-image:0.0.1
+  grayify-image:
+    deps:
+      - fetch-image
+    uses: sys/grayify-image:0.0.2

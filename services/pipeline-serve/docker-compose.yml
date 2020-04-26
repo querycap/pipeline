@@ -1,0 +1,14 @@
+version: "3.5"
+
+services:
+  fetch-image:
+    image: "sys/fetch-image:0.0.1"
+    build:
+      context: ../fetch-image
+  grayify-image:
+    image: "sys/grayify-image:0.0.2"
+    build:
+      context: ../grayify-image
+  pipeline-serve:
+    image: "process-some-image:0.1.0"
+    build: .
