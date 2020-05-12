@@ -27,11 +27,16 @@ func (o Operator) RefID() string {
 }
 
 type Pipeline struct {
-	Name    string           `json:"name" yaml:"name"`
-	Version semver.Version   `json:"version" yaml:"version"`
-	Stages  map[string]Stage `json:"stages" yaml:"stages"`
-	Starts  string           `json:"starts" yaml:"starts"`
-	Ends    string           `json:"ends" yaml:"ends"`
+	Name    string         `json:"name" yaml:"name"`
+	Version semver.Version `json:"version" yaml:"version"`
+
+	PipelineFlow `yaml:",inline"`
+}
+
+type PipelineFlow struct {
+	Stages map[string]Stage `json:"stages" yaml:"stages"`
+	Starts string           `json:"starts" yaml:"starts"`
+	Ends   string           `json:"ends" yaml:"ends"`
 }
 
 func (o Pipeline) String() string {
