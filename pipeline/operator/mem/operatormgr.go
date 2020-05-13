@@ -14,6 +14,8 @@ func NewMemOperatorMgr(pipelineController pipeline.PipelineController) *MemOpera
 	}
 }
 
+var _ pipeline.OperatorMgr = (*MemOperatorMgr)(nil)
+
 type MemOperatorMgr struct {
 	pipelineController pipeline.PipelineController
 	handlerFuncs       sync.Map
@@ -25,7 +27,7 @@ func (m *MemOperatorMgr) Register(ref pipeline.WithRefID, handlerFunc pipeline.O
 	return nil
 }
 
-func (m *MemOperatorMgr) Start(scope string, name string, step spec.Stage) error {
+func (m *MemOperatorMgr) Up(scope string, name string, step spec.Stage, replicas int) error {
 	v, ok := m.handlerFuncs.Load(step.Uses.RefID())
 	if !ok {
 		return fmt.Errorf("%s not found", step)
@@ -37,7 +39,7 @@ func (m *MemOperatorMgr) Start(scope string, name string, step spec.Stage) error
 	return nil
 }
 
-func (m *MemOperatorMgr) Stop(scope string, name string) error {
+func (m *MemOperatorMgr) Destroy(scope string, name string) error {
 	instanceID := scope + "/" + name
 
 	v, ok := m.instances.Load(instanceID)

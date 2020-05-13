@@ -7,7 +7,6 @@ import (
 	"net/textproto"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/querycap/pipeline/spec"
@@ -161,12 +160,7 @@ func ServeOperator(pipelineController PipelineController, stage string, operator
 		"pipeline/stage": stage,
 	})
 
-	wg := sync.WaitGroup{}
-
 	sub := Subscribe(pipelineController, stage, func(ctx context.Context, task *Task) {
-		wg.Add(1)
-		defer wg.Done()
-
 		if task.ErrMsg != "" {
 			return
 		}
@@ -210,6 +204,5 @@ func ServeOperator(pipelineController PipelineController, stage string, operator
 
 	return NewSubscription(func() {
 		sub.Unsubscribe()
-		wg.Wait()
 	})
 }

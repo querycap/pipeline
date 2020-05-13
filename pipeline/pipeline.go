@@ -51,7 +51,7 @@ type Pipeline struct {
 func (p *Pipeline) Start() error {
 	for name, step := range p.spec.Stages {
 		for i := 0; i < 3; i++ {
-			if err := p.mgr.operatorMgr.Start(p.taskMeta.Scope, name, step); err != nil {
+			if err := p.mgr.operatorMgr.Up(p.taskMeta.Scope, name, step, 3); err != nil {
 				return err
 			}
 		}
@@ -61,7 +61,7 @@ func (p *Pipeline) Start() error {
 
 func (p *Pipeline) Stop() error {
 	for name := range p.spec.Stages {
-		if err := p.mgr.operatorMgr.Stop(p.taskMeta.Scope, name); err != nil {
+		if err := p.mgr.operatorMgr.Destroy(p.taskMeta.Scope, name); err != nil {
 			return err
 		}
 	}

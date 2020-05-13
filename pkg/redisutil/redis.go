@@ -51,7 +51,7 @@ func NewPool(uri string) (*redis.Pool, error) {
 		}
 
 		return redis.Dial(
-			u.Scheme,
+			"tcp",
 			u.Host,
 			options...,
 		)

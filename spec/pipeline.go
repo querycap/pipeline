@@ -7,25 +7,6 @@ type DataSchema struct {
 	Schema      Schema `json:"schema,omitempty" yaml:"schema,omitempty"`
 }
 
-type OperatorMeta struct {
-	Inputs  DataSchema `json:"inputs" yaml:"inputs"`
-	Outputs DataSchema `json:"outputs" yaml:"outputs"`
-}
-
-type Operator struct {
-	Name         string         `json:"name" yaml:"name"`
-	Version      semver.Version `json:"version" yaml:"version"`
-	OperatorMeta `yaml:",inline"`
-}
-
-func (o Operator) String() string {
-	return o.RefID()
-}
-
-func (o Operator) RefID() string {
-	return o.Name + ":" + o.Version.String()
-}
-
 type Pipeline struct {
 	Name    string         `json:"name" yaml:"name"`
 	Version semver.Version `json:"version" yaml:"version"`
@@ -48,12 +29,26 @@ func (o Pipeline) RefID() string {
 }
 
 type Stage struct {
-	Deps       []string `json:"deps" yaml:"deps"`
-	Uses       Ref      `json:"uses" yaml:"uses"`
-	StepOption `yaml:",inline"`
+	Deps      []string `json:"deps" yaml:"deps"`
+	Uses      Ref      `json:"uses" yaml:"uses"`
+	Container `yaml:",inline"`
 }
 
-type StepOption struct {
-	Env  map[string]string `json:"env,omitempty" yaml:"env,omitempty"`
-	Args []string          `json:"args,omitempty" yaml:"args,omitempty"`
+type Container struct {
+	Command []string `json:"command,omitempty" yaml:"command,omitempty"`
+	Args    []string `json:"args,omitempty" yaml:"args,omitempty"`
+	Envs    Envs     `json:"envs,omitempty" yaml:"envs,omitempty"`
+}
+
+type Envs map[string]string
+
+func (envs Envs) Merge(otherEnvs Envs) Envs {
+	es := Envs{}
+	for k, v := range envs {
+		es[k] = v
+	}
+	for k, v := range otherEnvs {
+		es[k] = v
+	}
+	return es
 }
