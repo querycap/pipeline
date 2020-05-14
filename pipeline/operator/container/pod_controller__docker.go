@@ -35,7 +35,7 @@ type DockerPodController struct {
 func (c *DockerPodController) Apply(ctx context.Context, name string, container *Container) error {
 	imageRef := c.imageRegistry.Fix(container.Image)
 
-	if err := c.PullImageIfNotExists(ctx, imageRef); err != nil {
+	if err := c.pullImageIfNotExists(ctx, imageRef); err != nil {
 		return err
 	}
 
@@ -43,19 +43,19 @@ func (c *DockerPodController) Apply(ctx context.Context, name string, container 
 		"pipeline": name,
 	}
 
-	list, err := c.ListMatchedRunningContainer(ctx, name)
+	list, err := c.listMatchedRunningContainer(ctx, name)
 	if err != nil {
 		return err
 	}
 
 	current := len(list)
 
-	offset := current - container.Replicas
+	offset := current - int(container.Replicas)
 
 	// scale up
 	if offset < 0 {
 		for i := 0; i < -offset; i++ {
-			if err := c.RunContainer(ctx, imageRef, container); err != nil {
+			if err := c.runContainer(ctx, imageRef, container); err != nil {
 				return err
 			}
 		}
@@ -67,7 +67,7 @@ func (c *DockerPodController) Apply(ctx context.Context, name string, container 
 		rand.Shuffle(len(list), func(i, j int) { list[i], list[j] = list[j], list[i] })
 
 		for _, item := range list[0:offset] {
-			if err := c.KillContainer(ctx, item.ID); err != nil {
+			if err := c.killContainer(ctx, item.ID); err != nil {
 				return err
 			}
 		}
@@ -77,13 +77,13 @@ func (c *DockerPodController) Apply(ctx context.Context, name string, container 
 }
 
 func (c *DockerPodController) Kill(ctx context.Context, name string) error {
-	list, err := c.ListMatchedRunningContainer(ctx, name)
+	list, err := c.listMatchedRunningContainer(ctx, name)
 	if err != nil {
 		return err
 	}
 
 	for i := range list {
-		if err := c.KillContainer(ctx, list[i].ID); err != nil {
+		if err := c.killContainer(ctx, list[i].ID); err != nil {
 			return err
 		}
 	}
@@ -91,19 +91,21 @@ func (c *DockerPodController) Kill(ctx context.Context, name string) error {
 	return nil
 }
 
-func (c *DockerPodController) ListMatchedRunningContainer(ctx context.Context, name string) ([]types.Container, error) {
+func (c *DockerPodController) listMatchedRunningContainer(ctx context.Context, name string) ([]types.Container, error) {
 	containerListFilters := filters.NewArgs()
 	containerListFilters.Add("label", "pipeline="+name)
 
-	return c.ListRunningContainer(ctx, containerListFilters)
+	return c.listRunningContainer(ctx, containerListFilters)
 }
 
-func (c *DockerPodController) RunContainer(ctx context.Context, image string, cc *Container) error {
+func (c *DockerPodController) runContainer(ctx context.Context, image string, cc *Container) error {
 	logrus.WithContext(ctx).Debugf("running from %s", image)
 
 	containerConfig := &container.Config{
-		Image:  image,
-		Labels: cc.Annotations,
+		Image:      image,
+		Labels:     cc.Annotations,
+		Entrypoint: cc.Command,
+		Cmd:        cc.Args,
 	}
 
 	for k := range cc.Envs {
@@ -143,20 +145,20 @@ func (c *DockerPodController) RunContainer(ctx context.Context, image string, cc
 	return nil
 }
 
-func (c *DockerPodController) ListRunningContainer(ctx context.Context, args filters.Args) ([]types.Container, error) {
+func (c *DockerPodController) listRunningContainer(ctx context.Context, args filters.Args) ([]types.Container, error) {
 	return c.client.ContainerList(ctx, types.ContainerListOptions{
 		Filters: args,
 		All:     false,
 	})
 }
 
-func (c *DockerPodController) KillContainer(ctx context.Context, containerID string) error {
+func (c *DockerPodController) killContainer(ctx context.Context, containerID string) error {
 	logrus.WithContext(ctx).Debugf("killing %s", containerID)
 
 	return c.client.ContainerKill(ctx, containerID, "SIGKILL")
 }
 
-func (c *DockerPodController) PullImageIfNotExists(ctx context.Context, image string) error {
+func (c *DockerPodController) pullImageIfNotExists(ctx context.Context, image string) error {
 	imageListFilters := filters.NewArgs()
 	imageListFilters.Add("reference", strings.Replace(image, "docker.io/library/", "", 1))
 

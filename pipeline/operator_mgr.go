@@ -5,6 +5,6 @@ import (
 )
 
 type OperatorMgr interface {
-	Up(scope string, name string, step spec.Stage, replicas int) error
+	Up(scope string, name string, step spec.Stage, replicas int32) error
 	Destroy(scope string, name string) error
 }

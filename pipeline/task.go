@@ -53,7 +53,7 @@ func TaskMetaFromPipeline(spec *spec.Pipeline, pipelineID uint64) (*TaskMeta, er
 	}
 
 	taskMeta := TaskMeta{
-		Scope:     fmt.Sprintf("pipelines/%s/%d", spec.RefID(), pipelineID),
+		Scope:     fmt.Sprintf("p/%s/%d", spec.RefID(), pipelineID),
 		Starts:    spec.Starts,
 		Ends:      spec.Ends,
 		StageDeps: map[string][]string{},

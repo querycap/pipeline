@@ -8,7 +8,8 @@ import (
 )
 
 func PodNameByScopeAndStage(scope string, stage string) string {
-	return strings.Replace(scope+"--"+stage, ":", "__", -1)
+	parts := strings.Split(scope, "/")
+	return "p" + parts[len(parts)-1] + "-" + stage
 }
 
 type PodController interface {
@@ -19,6 +20,6 @@ type PodController interface {
 type Container struct {
 	spec.Container
 	Image       string
-	Replicas    int
+	Replicas    int32
 	Annotations map[string]string
 }

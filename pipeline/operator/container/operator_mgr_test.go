@@ -28,7 +28,7 @@ func RunAll(t *testing.T, c PodController) {
 	s.Uses.Name = "nginx"
 	s.Uses.Version = *semver.MustParseVersion("1.17.10")
 
-	mgr := NewOperatorMgr(c, &Container{})
+	mgr := NewOperatorMgr(c, map[string]string{})
 
 	t.Run("start", func(t *testing.T) {
 		if err := mgr.Up(scope, stage, s, 3); err != nil {

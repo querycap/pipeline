@@ -27,7 +27,7 @@ func (m *MemOperatorMgr) Register(ref pipeline.WithRefID, handlerFunc pipeline.O
 	return nil
 }
 
-func (m *MemOperatorMgr) Up(scope string, name string, step spec.Stage, replicas int) error {
+func (m *MemOperatorMgr) Up(scope string, name string, step spec.Stage, replicas int32) error {
 	v, ok := m.handlerFuncs.Load(step.Uses.RefID())
 	if !ok {
 		return fmt.Errorf("%s not found", step)

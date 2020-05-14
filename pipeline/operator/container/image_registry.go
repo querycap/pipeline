@@ -16,6 +16,7 @@ func ParseImageRegistry(uri string) (*ImageRegistry, error) {
 
 	endpoint := &ImageRegistry{}
 
+	endpoint.Name = u.Scheme
 	endpoint.Host = u.Host
 	endpoint.Prefix = u.Path
 
@@ -28,6 +29,7 @@ func ParseImageRegistry(uri string) (*ImageRegistry, error) {
 }
 
 type ImageRegistry struct {
+	Name     string
 	Host     string
 	Username string
 	Password string
@@ -42,4 +44,16 @@ func (s ImageRegistry) RegistryAuth() string {
 	authConfig := types.AuthConfig{Username: s.Username, Password: s.Password, ServerAddress: s.Host}
 	b, _ := json.Marshal(authConfig)
 	return base64.StdEncoding.EncodeToString(b)
+}
+
+func (s ImageRegistry) DockerConfigJSON() []byte {
+	v := struct {
+		Auths map[string]types.AuthConfig `json:"auths"`
+	}{
+		Auths: map[string]types.AuthConfig{
+			s.Host: {Username: s.Username, Password: s.Password},
+		},
+	}
+	b, _ := json.Marshal(v)
+	return b
 }
